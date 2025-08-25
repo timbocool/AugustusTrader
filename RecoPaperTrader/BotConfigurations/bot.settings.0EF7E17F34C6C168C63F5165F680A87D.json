@@ -1,0 +1,220 @@
+{
+  "ConfigHash": "0EF7E17F34C6C168C63F5165F680A87D",
+  "Strategies": [
+    {
+      "Strategy": "InsideBarBreak",
+      "Timeframe": "3d",
+      "Accuracy": 1,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.16468,
+      "MedianNetReturnPct": 0.179247,
+      "Expectancy": 0.16468,
+      "PayoffRatio": 0,
+      "WinLossRatio": 2
+    },
+    {
+      "Strategy": "InsideBarBreak",
+      "Timeframe": "1d",
+      "Accuracy": 0.928571,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.030814357142857147,
+      "MedianNetReturnPct": 0.032707,
+      "Expectancy": 0.030814357142857147,
+      "PayoffRatio": 0,
+      "WinLossRatio": 13
+    },
+    {
+      "Strategy": "InsideBarNR7Break",
+      "Timeframe": "12h",
+      "Accuracy": 1,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.029307400000000004,
+      "MedianNetReturnPct": 0.02099,
+      "Expectancy": 0.029307400000000004,
+      "PayoffRatio": 0,
+      "WinLossRatio": 5
+    },
+    {
+      "Strategy": "InsideBarBreak",
+      "Timeframe": "12h",
+      "Accuracy": 0.823529,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.01714564705882353,
+      "MedianNetReturnPct": 0.017844,
+      "Expectancy": 0.01714564705882353,
+      "PayoffRatio": 0,
+      "WinLossRatio": 14
+    },
+    {
+      "Strategy": "RsiAdaptive",
+      "Timeframe": "6h",
+      "Accuracy": 0.786885,
+      "AvgConfidence": 0.66,
+      "AvgNetReturnPct": 0.016255893442622953,
+      "MedianNetReturnPct": 0.013372,
+      "Expectancy": 0.016255893442622946,
+      "PayoffRatio": 8.428283855567507,
+      "WinLossRatio": 10.666666666666666
+    },
+    {
+      "Strategy": "Rsi50",
+      "Timeframe": "6h",
+      "Accuracy": 0.794118,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.014523017647058822,
+      "MedianNetReturnPct": 0.012772,
+      "Expectancy": 0.014523017647058824,
+      "PayoffRatio": 7.648857564031689,
+      "WinLossRatio": 15
+    },
+    {
+      "Strategy": "AtrBreakout",
+      "Timeframe": "1h",
+      "Accuracy": 0.741935,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.008816828784119123,
+      "MedianNetReturnPct": 0.004484,
+      "Expectancy": 0.008816828784119128,
+      "PayoffRatio": 2.083263936361756,
+      "WinLossRatio": 8.305555555555555
+    },
+    {
+      "Strategy": "RsiAdaptive",
+      "Timeframe": "2h",
+      "Accuracy": 0.713333,
+      "AvgConfidence": 0.66,
+      "AvgNetReturnPct": 0.007933386666666669,
+      "MedianNetReturnPct": 0.003667,
+      "Expectancy": 0.007933386666666669,
+      "PayoffRatio": 4.272087063224283,
+      "WinLossRatio": 5.631578947368421
+    },
+    {
+      "Strategy": "Rsi50",
+      "Timeframe": "2h",
+      "Accuracy": 0.745946,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.007628356756756756,
+      "MedianNetReturnPct": 0.003713,
+      "Expectancy": 0.007628356756756759,
+      "PayoffRatio": 1.9978743605745908,
+      "WinLossRatio": 8.625
+    },
+    {
+      "Strategy": "RsiAdaptive",
+      "Timeframe": "1h",
+      "Accuracy": 0.603324,
+      "AvgConfidence": 0.66,
+      "AvgNetReturnPct": 0.0061184588150289005,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.006118458815028909,
+      "PayoffRatio": 2.429901453000622,
+      "WinLossRatio": 3.5991379310344827
+    },
+    {
+      "Strategy": "Rsi50",
+      "Timeframe": "1h",
+      "Accuracy": 0.626493,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.005891427252985888,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.005891427252985847,
+      "PayoffRatio": 1.5237643577892648,
+      "WinLossRatio": 4.151079136690647
+    },
+    {
+      "Strategy": "AtrBreakout",
+      "Timeframe": "30m",
+      "Accuracy": 0.693548,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.0049315376344085966,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.0049315376344085966,
+      "PayoffRatio": 1.8586393578278935,
+      "WinLossRatio": 6.615384615384615
+    },
+    {
+      "Strategy": "AtrBreakout",
+      "Timeframe": "15m",
+      "Accuracy": 0.686298,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.00439842307692309,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.004398423076923097,
+      "PayoffRatio": 1.316713592859173,
+      "WinLossRatio": 6.7976190476190474
+    },
+    {
+      "Strategy": "Rsi50",
+      "Timeframe": "30m",
+      "Accuracy": 0.643526,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.004155841322314064,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.004155841322314054,
+      "PayoffRatio": 1.0648812828621994,
+      "WinLossRatio": 4.141843971631205
+    },
+    {
+      "Strategy": "InsideBarBreak",
+      "Timeframe": "5m",
+      "Accuracy": 0.897411,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.003954987889425606,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.003954987889425695,
+      "PayoffRatio": 0.6782138001298315,
+      "WinLossRatio": 19.590038314176244
+    },
+    {
+      "Strategy": "AtrBreakout",
+      "Timeframe": "5m",
+      "Accuracy": 0.771201,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.0032296985426786234,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.0032296985426783077,
+      "PayoffRatio": 1.4927656300687049,
+      "WinLossRatio": 4.506488240064883
+    },
+    {
+      "Strategy": "Rsi50",
+      "Timeframe": "15m",
+      "Accuracy": 0.603631,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.002609751396648066,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.0026097513966480013,
+      "PayoffRatio": 0.829684992037581,
+      "WinLossRatio": 3.8520499108734403
+    },
+    {
+      "Strategy": "Rsi50",
+      "Timeframe": "5m",
+      "Accuracy": 0.725761,
+      "AvgConfidence": 0.6,
+      "AvgNetReturnPct": 0.0022067678443474857,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.0022067678443434607,
+      "PayoffRatio": 0.8201544031988335,
+      "WinLossRatio": 3.359133350156819
+    },
+    {
+      "Strategy": "VwapMultiVWAP",
+      "Timeframe": "5m",
+      "Accuracy": 0.606569,
+      "AvgConfidence": 0.55,
+      "AvgNetReturnPct": 0.002028862392687988,
+      "MedianNetReturnPct": 0.0003,
+      "Expectancy": 0.0020288623926850127,
+      "PayoffRatio": 1.2974615938681993,
+      "WinLossRatio": 1.8216053975013469
+    }
+  ],
+  "Risk": {
+    "RiskPctPerTrade": 0.0025,
+    "MaxDailyLossPct": 0.015,
+    "MaxOpenPositionsPerSymbol": 1,
+    "CooldownMinutesPerSymbol": 60
+  }
+}

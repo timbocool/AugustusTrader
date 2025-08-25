@@ -1,0 +1,286 @@
+﻿@page
+@using Microsoft.EntityFrameworkCore
+@using Shared
+@using global::Shared
+@using global::Shared.Models
+@{
+    ViewData["Title"] = "Home page";
+
+    // --- Query params ---
+    var q    = (string?)Request.Query["q"];
+    var sort = (string?)Request.Query["sort"] ?? "LastUpdatedUtc";
+    var dir  = (string?)Request.Query["dir"]  ?? "desc";
+    int pageSize = int.TryParse(Request.Query["ps"], out var ps) ? Math.Clamp(ps, 10, 200) : 25;
+    int page     = int.TryParse(Request.Query["page"], out var p) ? Math.Max(p, 1) : 1;
+    int skip     = (page - 1) * pageSize;
+    int takePlusOne = pageSize + 1; // fetch one extra to know if there's a next page
+
+    // Whitelist sort column to avoid SQL injection
+    string SortCol(string? s) => (s ?? "").ToLowerInvariant() switch
+    {
+        "strategy"           => "[Strategy]",
+        "timeframe"          => "[Timeframe]",
+        "total"              => "[Total]",
+        "hits"               => "[Hits]",
+        "accuracy"           => "[Accuracy]",
+        "avgconfidence"      => "[AvgConfidence]",
+        "avgnetreturnpct"    => "[AvgNetReturnPct]",
+        "mediannetreturnpct" => "[MedianNetReturnPct]",
+        "expectancy"         => "[Expectancy]",
+        "payoffratio"        => "[PayoffRatio]",
+        "winlossratio"       => "[WinLossRatio]",
+        "confighash"         => "[ConfigHash]",
+        "lastupdatedutc"     => "[LastUpdatedUtc]",
+        _                    => "[LastUpdatedUtc]"
+    };
+    string SortDir(string? d) => string.Equals(d, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+    var orderBySql = $"{SortCol(sort)} {SortDir(dir)}, [Id] ASC";
+
+    // Build WHERE clause for optional search
+    var hasQ = !string.IsNullOrWhiteSpace(q);
+    var whereSql = hasQ
+        ? "WHERE [Strategy] LIKE {0} OR [Timeframe] LIKE {0} OR [ConfigHash] LIKE {0}"
+        : "";
+
+    // --- DB & query ---
+    var options = new DbContextOptionsBuilder<SharedDbContext>()
+        .UseSqlServer("Server=localhost;Database=Tradexus;Trusted_Connection=True;Encrypt=False;")
+        .Options;
+
+    await using var db = new SharedDbContext(options);
+
+    // Main page of rows (CAST DECIMAL -> float so it fits your double properties)
+    var sql = $@"
+        SELECT
+            [Id],
+            [Strategy],
+            [Timeframe],
+            [Total],
+            [Hits],
+            CAST([Accuracy]           AS float) AS [Accuracy],
+            CAST([AvgConfidence]      AS float) AS [AvgConfidence],
+            CAST([AvgNetReturnPct]    AS float) AS [AvgNetReturnPct],
+            CAST([MedianNetReturnPct] AS float) AS [MedianNetReturnPct],
+            CAST([Expectancy]         AS float) AS [Expectancy],
+            CAST([PayoffRatio]        AS float) AS [PayoffRatio],
+            CAST([WinLossRatio]       AS float) AS [WinLossRatio],
+            [LastUpdatedUtc],
+            [ConfigHash]
+        FROM [dbo].[RecoStrategyAccuracy]
+        {whereSql}
+        ORDER BY {orderBySql}
+        OFFSET {skip} ROWS FETCH NEXT {takePlusOne} ROWS ONLY";
+
+    List<RecoStrategyAccuracy> rows = hasQ
+        ? await db.RecoStrategyAccuracy.FromSqlRaw(sql, $"%{q}%").AsNoTracking().ToListAsync()
+        : await db.RecoStrategyAccuracy.FromSqlRaw(sql).AsNoTracking().ToListAsync();
+
+    var hasNext = rows.Count > pageSize;
+    var pageRows = hasNext ? rows.Take(pageSize).ToList() : rows;
+
+    // Helpers for building header links
+    Func<string, string> nextDir = col =>
+        string.Equals(sort, col, StringComparison.OrdinalIgnoreCase) && string.Equals(dir, "asc", StringComparison.OrdinalIgnoreCase)
+            ? "desc" : "asc";
+    Func<string, string> icon = col =>
+        string.Equals(sort, col, StringComparison.OrdinalIgnoreCase)
+            ? (string.Equals(dir, "asc", StringComparison.OrdinalIgnoreCase) ? "▲" : "▼")
+            : "↕";
+}
+
+<h1 class="display-6 mb-3">Strategy Accuracy</h1>
+
+<form method="get" class="row gy-2 gx-2 align-items-center mb-3">
+    <div class="col-sm-6 col-md-4">
+        <input name="q" value="@q" class="form-control" placeholder="Search Strategy / Timeframe / Config hash" />
+    </div>
+    <div class="col-auto">
+        <select name="ps" class="form-select" onchange="this.form.submit()">
+            @{
+                int[] sizes = new[] { 25, 50, 100, 200 };
+                foreach (var s in sizes)
+                {
+                    <option value="@s" selected="@(s == pageSize)">@s per page</option>
+                }
+            }
+        </select>
+    </div>
+    <input type="hidden" name="sort" value="@sort" />
+    <input type="hidden" name="dir"  value="@dir" />
+    <div class="col-auto">
+        <button class="btn btn-primary">Apply</button>
+        @if (!string.IsNullOrWhiteSpace(q) || page != 1 || sort != "LastUpdatedUtc" || dir != "desc" || pageSize != 25)
+        {
+            <a class="btn btn-outline-secondary ms-1" href="?">Reset</a>
+        }
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover table-sm align-middle text-nowrap">
+        <thead class="table-light sticky-top" style="position: sticky; top: 0; z-index: 1;">
+            <tr>
+                <th><a class="link-underline-opacity-0" href="?sort=Strategy&dir=@nextDir("Strategy")&q=@q&ps=@pageSize">@icon("Strategy") Strategy</a></th>
+                <th><a class="link-underline-opacity-0" href="?sort=Timeframe&dir=@nextDir("Timeframe")&q=@q&ps=@pageSize">@icon("Timeframe") Timeframe</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=Total&dir=@nextDir("Total")&q=@q&ps=@pageSize">@icon("Total") Total</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=Hits&dir=@nextDir("Hits")&q=@q&ps=@pageSize">@icon("Hits") Hits</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=Accuracy&dir=@nextDir("Accuracy")&q=@q&ps=@pageSize">@icon("Accuracy") Accuracy</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=AvgConfidence&dir=@nextDir("AvgConfidence")&q=@q&ps=@pageSize">@icon("AvgConfidence") Avg Confidence</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=AvgNetReturnPct&dir=@nextDir("AvgNetReturnPct")&q=@q&ps=@pageSize">@icon("AvgNetReturnPct") Avg Net Return %</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=MedianNetReturnPct&dir=@nextDir("MedianNetReturnPct")&q=@q&ps=@pageSize">@icon("MedianNetReturnPct") Median Net Return %</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=Expectancy&dir=@nextDir("Expectancy")&q=@q&ps=@pageSize">@icon("Expectancy") Expectancy</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=PayoffRatio&dir=@nextDir("PayoffRatio")&q=@q&ps=@pageSize">@icon("PayoffRatio") Payoff Ratio</a></th>
+                <th class="text-end"><a class="link-underline-opacity-0" href="?sort=WinLossRatio&dir=@nextDir("WinLossRatio")&q=@q&ps=@pageSize">@icon("WinLossRatio") Win/Loss Ratio</a></th>
+                <th><a class="link-underline-opacity-0" href="?sort=LastUpdatedUtc&dir=@nextDir("LastUpdatedUtc")&q=@q&ps=@pageSize">@icon("LastUpdatedUtc") Last Updated (Local)</a></th>
+                <th><a class="link-underline-opacity-0" href="?sort=ConfigHash&dir=@nextDir("ConfigHash")&q=@q&ps=@pageSize">@icon("ConfigHash") Config Hash</a></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (pageRows.Count == 0)
+        {
+            <tr><td colspan="13" class="text-muted">No data.</td></tr>
+        }
+        else
+        {
+            foreach (var r in pageRows)
+            {
+                <tr>
+                    <td>@r.Strategy</td>
+                    <td>@r.Timeframe</td>
+                    <td class="text-end">@r.Total</td>
+                    <td class="text-end">@r.Hits</td>
+                    <td class="text-end">@r.Accuracy.ToString("P2")</td>
+                    <td class="text-end">@r.AvgConfidence.ToString("N2")</td>
+                    <td class="text-end">@($"{r.AvgNetReturnPct:N2}%")</td>
+                    <td class="text-end">@($"{r.MedianNetReturnPct:N2}%")</td>
+                    <td class="text-end">@r.Expectancy.ToString("N3")</td>
+                    <td class="text-end">@r.PayoffRatio.ToString("N2")</td>
+                    <td class="text-end">@r.WinLossRatio.ToString("N2")</td>
+                    <td>@r.LastUpdatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td><code>@r.ConfigHash</code></td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <div class="text-muted">
+        Page @(hasNext ? "" : "(last)") • Showing @pageRows.Count item(s)
+        @if (!string.IsNullOrWhiteSpace(q)) { <text> • Filter: “@q”</text>; }
+    </div>
+    <div>
+        @if (page > 1)
+        {
+            <a class="btn btn-outline-secondary btn-sm me-1"
+               href="?page=@(page-1)&ps=@pageSize&sort=@sort&dir=@dir&q=@q">« Prev</a>
+        }
+        @if (hasNext)
+        {
+            <a class="btn btn-outline-secondary btn-sm"
+               href="?page=@(page+1)&ps=@pageSize&sort=@sort&dir=@dir&q=@q">Next »</a>
+        }
+    </div>
+</div>
+
+<style>
+/* Subtle “modern” tweaks */
+.table thead th a { color: inherit; text-decoration: none; }
+.table thead th a:hover { text-decoration: underline; }
+.table tbody tr:hover { filter: brightness(0.98); }
+</style>
+
+
+
+@* @page
+@using Microsoft.EntityFrameworkCore
+@using Shared
+@using global::Shared
+@{
+    ViewData["Title"] = "Home page";
+
+    var options = new DbContextOptionsBuilder<SharedDbContext>()
+        .UseSqlServer("Server=localhost;Database=Tradexus;Trusted_Connection=True;Encrypt=False;")
+        .Options;
+
+    await using var db = new SharedDbContext(options);
+
+    // Cast DECIMAL -> float in SQL so EF can fill your double properties
+    var rows = await db.RecoStrategyAccuracy
+        .FromSqlRaw(@"
+            SELECT TOP (1000)
+                [Id],
+                [Strategy],
+                [Timeframe],
+                [Total],
+                [Hits],
+                CAST([Accuracy]           AS float) AS [Accuracy],
+                CAST([AvgConfidence]      AS float) AS [AvgConfidence],
+                CAST([AvgNetReturnPct]    AS float) AS [AvgNetReturnPct],
+                CAST([MedianNetReturnPct] AS float) AS [MedianNetReturnPct],
+                CAST([Expectancy]         AS float) AS [Expectancy],
+                CAST([PayoffRatio]        AS float) AS [PayoffRatio],
+                CAST([WinLossRatio]       AS float) AS [WinLossRatio],
+                [LastUpdatedUtc],
+                [ConfigHash]
+            FROM [dbo].[RecoStrategyAccuracy]
+            ORDER BY [LastUpdatedUtc] DESC
+        ")
+        .AsNoTracking()
+        .ToListAsync();
+}
+
+<h1 class="display-6 mb-3">Strategy Accuracy (Top 1000)</h1>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover table-sm align-middle text-nowrap">
+        <thead>
+            <tr>
+                <th>Strategy</th>
+                <th>Timeframe</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">Hits</th>
+                <th class="text-end">Accuracy</th>
+                <th class="text-end">Avg Confidence</th>
+                <th class="text-end">Avg Net Return %</th>
+                <th class="text-end">Median Net Return %</th>
+                <th class="text-end">Expectancy</th>
+                <th class="text-end">Payoff Ratio</th>
+                <th class="text-end">Win/Loss Ratio</th>
+                <th>Last Updated (Local)</th>
+                <th>Config Hash</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (rows.Count == 0)
+            {
+                <tr>
+                    <td colspan="13" class="text-muted">No data.</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var r in rows)
+                {
+                    <tr>
+                        <td>@r.Strategy</td>
+                        <td>@r.Timeframe</td>
+                        <td class="text-end">@r.Total</td>
+                        <td class="text-end">@r.Hits</td>
+                        <td class="text-end">@r.Accuracy.ToString("P2")</td>
+                        <td class="text-end">@r.AvgConfidence.ToString("N2")</td>
+                        <td class="text-end">@($"{r.AvgNetReturnPct:N2}%")</td>
+                        <td class="text-end">@($"{r.MedianNetReturnPct:N2}%")</td>
+                        <td class="text-end">@r.Expectancy.ToString("N3")</td>
+                        <td class="text-end">@r.PayoffRatio.ToString("N2")</td>
+                        <td class="text-end">@r.WinLossRatio.ToString("N2")</td>
+                        <td>@r.LastUpdatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td><code>@r.ConfigHash</code></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+ *@
